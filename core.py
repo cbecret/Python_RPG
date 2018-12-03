@@ -8,9 +8,18 @@ class Stuff:
 
     def _equip(self, itemslot, item):
         if type(item) == Item and item.slot.name == itemslot:
+            self.stats.strength += item.stats.strength
+            self.stats.constitution += item.stats.constitution
+            self.stats.dexterity += item.stats.dexterity
+            self.stats.intelligence += item.stats.intelligence
             setattr(self, itemslot, item)
 
     def _remove(self, itemslot):
+        item = getattr(self, itemslot)
+        self.stats.strength -= item.stats.strength
+        self.stats.constitution -= item.stats.constitution
+        self.stats.dexterity -= item.stats.dexterity
+        self.stats.intelligence -= item.stats.intelligence
         setattr(self, itemslot, Unequiped(slot=itemslot))
 
     @staticmethod
@@ -161,6 +170,9 @@ class Player(Stuff):
     left_hand = attr.ib(default=Unequiped(slot="left_hand"))
     right_hand = attr.ib(default=Unequiped(slot="right_hand"))
 
+    def __attrs_post_init__(self):
+        self.hp = self.max_hp
+
     def level_up(self):
         self.level += 1
 
@@ -216,25 +228,41 @@ class Fight:
     monster = attr.ib()
 
     def __attrs_post_init__(self):
-        self._attack()
-
-    def _attack(self):
-        self.monster.alter_hp(-self.player.stats.strength)
-        if self.monster.hp > 0:
-            print(f"{self.player.name} enlève {self.player.stats.strength}hp à {self.monster.name}")
-            self._defend()
-        else:
-            print(f"{self.player.name} enlève {self.player.stats.strength}hp à {self.monster.name} et le tue")
-            print(f"Player win")
-
-    def _defend(self):
-        self.player.alter_hp(-self.monster.stats.strength)
         if self.player.hp > 0:
-            print(f"{self.monster.name} enlève {self.monster.stats.strength}hp à {self.player.name}")
             self._attack()
         else:
-            print(f"{self.monster.name} enlève {self.monster.stats.strength}hp à {self.player.name} et le tue")
-            print(f"Monster win")
+            print(f"{self.player.name} est mort")
+
+    def _attack(self):
+        delta_attack = int(self.player.stats.strength * random.random()
+                           - self.monster.stats.constitution * random.random())
+        if delta_attack > 0:
+            self.monster.alter_hp(-delta_attack)
+            if self.monster.hp > 0:
+                print(f"{self.player.name} enlève {delta_attack}hp à {self.monster.name}")
+                self._defend()
+            else:
+                print(f"{self.player.name} enlève {delta_attack}hp à {self.monster.name} et le tue")
+                print(f"{self.player.name} gagne le combat")
+        else:
+            print(f"{self.player.name} rate son attaque sur {self.monster.name}")
+            self._defend()
+
+    def _defend(self):
+        delta_attack = int(self.monster.stats.strength * random.random()
+                           - self.player.stats.constitution * random.random())
+        if delta_attack > 0:
+            self.player.alter_hp(-delta_attack)
+            if self.player.hp > 0:
+                print(f"{self.monster.name} enlève {delta_attack}hp à {self.player.name}")
+                self._attack()
+            else:
+                self.player.hp = 0
+                print(f"{self.monster.name} enlève {delta_attack}hp à {self.player.name} et le tue")
+                print(f"{self.monster.name} gagne le combat")
+        else:
+            print(f"{self.monster.name} rate son attaque sur {self.player.name}")
+            self._attack()
 
     def pick_loots(self):
         number_loots = random.randint(0, 3)
@@ -247,9 +275,9 @@ class Fight:
 
     def end_fight(self):
         if self.player.stats.strength >= self.monster.stats.strength:
-            print(f"{self.player.name} win")
+            print(f"{self.player.name} gagne le combat")
         else:
-            print(f"{self.monster.name} win")
+            print(f"{self.monster.name} gagne le combat")
 
 
 @attr.s
@@ -266,14 +294,14 @@ class Monster:
         self.hp += amount
 
 
-beginnerHead = Item("Heaume du débutant", Slot("head"), Stats(12, 0, 10, 6), Stats(3, 0, 7, 0))
-beginnerChest = Item("Plastron du débutant", Slot("chest"), Stats(12, 0, 10, 6), Stats(5, 0, 12, 0))
-beginnerLegs = Item("Jambières du débutant", Slot("legs"), Stats(12, 0, 10, 6), Stats(4, 0, 7, 0))
-beginnerFoot = Item("Sandales du débutant", Slot("foot"), Stats(12, 0, 10, 6), Stats(3, 0, 5, 0))
-beginnerSword = Item("Epée du débutant", Slot("right_hand"), Stats(12, 0, 10, 6), Stats(8, 0, 5, 0))
-beginnerShield = Item("Bouclier du débutant", Slot("left_hand"), Stats(12, 0, 10, 6), Stats(0, 0, 10, 0))
+beginnerHead = Item("Heaume du débutant", Slot("head"), Stats(12, 0, 10, 6), Stats(3, 18, 7, 0))
+beginnerChest = Item("Plastron du débutant", Slot("chest"), Stats(12, 0, 10, 6), Stats(5, 21, 12, 0))
+beginnerLegs = Item("Jambières du débutant", Slot("legs"), Stats(12, 0, 10, 6), Stats(4, 8, 7, 0))
+beginnerFoot = Item("Sandales du débutant", Slot("foot"), Stats(12, 0, 10, 6), Stats(3, 5, 5, 0))
+beginnerSword = Item("Epée du débutant", Slot("right_hand"), Stats(12, 0, 10, 6), Stats(43, 0, 5, 0))
+beginnerShield = Item("Bouclier du débutant", Slot("left_hand"), Stats(12, 0, 10, 6), Stats(0, 15, 10, 0))
 
-jacky = Player("Jacky le guerrier", 1, Stats(10, 12, 11, 13), 40)
+jacky = Player("Jacky le guerrier", 1, Stats(10, 12, 11, 13), 400)
 
 jacky.equip_head(beginnerHead)
 jacky.equip_chest(beginnerChest)
@@ -282,15 +310,13 @@ jacky.equip_foot(beginnerFoot)
 jacky.equip_right_hand(beginnerSword)
 jacky.equip_left_hand(beginnerShield)
 
-gobelin1 = Monster("Toto le gobelin", 2, Stats(6, 4, 5, 0), 36)
-gobelin2 = Monster("Gérard le grand gobelin", 2, Stats(6, 4, 5, 0), 36)
-ogre1 = Monster("Pascal l'ogre puant'", 2, Stats(9, 4, 5, 0), 50)
+
+gobelin1 = Monster("Toto le gobelin", 2, Stats(86, 4, 5, 0), 336)
+gobelin2 = Monster("Gérard le grand gobelin", 2, Stats(93, 4, 5, 0), 236)
+ogre1 = Monster("Pascal l'ogre puant", 2, Stats(110, 4, 5, 0), 150)
 
 Fight(jacky, gobelin1)
 Fight(jacky, gobelin2)
-jacky.display_stats()
-jacky.drink_potion()
-jacky.display_stats()
 Fight(jacky, ogre1)
 
-jacky.show_stuff()
+jacky.display_stats()
