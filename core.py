@@ -2,33 +2,23 @@ import random
 import attr
 
 class Character:
-    def get_name(self):
-        return self._name
-    def get_level(self):
-        return self._level
     def level_up(self):
         self._level += 1
     def display_level(self):
-        print(self._name, "is level [", self.get_level(), "]")
+        print(self._name, "is level [", self._level, "]")
     def alterate_strength(self, modifier):
         self._stats._strength += modifier
-    def get_pvmax(self):
-        return self._pvmax
-    def get_pv(self):
-        return self._pv
     def alterate_pv(self, amount):
         self._pv += amount
     def drink_potion(self):
-        self._pv = self.get_pvmax()
+        self._pv = self._pvmax
 
 
 class Stuff:
-    def _get(self, itemSlot):
-        return self[itemSlot]
     def _show(self, itemSlot):
         getattr(self, itemSlot).display()
     def _equip(self, itemSlot, item):
-        if type(item) == Item and item._slot.get_name() == itemSlot:
+        if type(item) == Item and item._slot._name == itemSlot:
             setattr(self, itemSlot, item)
     def _remove(self, itemSlot):
         setattr(self, itemSlot, Unequiped(slot = itemSlot))
@@ -40,7 +30,7 @@ class Stuff:
     def show_item(self, item):
         print("------------------------------")
         print(f"*** {item._name} ***")
-        print(f"    ({item._slot.get_name()})")
+        print(f"    ({item._slot._name})")
         print(f"Force        : +{item._stats._strength} [req.{item._requirements._strength}]")
         print(f"Constitution : +{item._stats._constitution} [req.{item._requirements._constitution}]")
         print(f"Dexterité    : +{item._stats._dexterity} [req.{item._requirements._dexterity}]")
@@ -54,54 +44,42 @@ class Stuff:
         self._show("_foot")
         self._show("_leftHand")
         self._show("_rightHand")
- 
-    def get_head(self):
-        return self._get("_head")
+
     def show_head(self):
         self._show("_head")
     def equip_head(self, item):
         self._equip("_head", item)
     def remove_head(self):
         self._remove("_head")
-        
-    def get_chest(self):
-        return self._get("_chest")
+
     def show_chest(self):
         self._show("_chest")
     def equip_chest(self, item):
         self._equip("_chest", item)
     def remove_chest(self):
         self._remove("_chest")
-        
-    def get_legs(self):
-        return self._get("_legs")
+
     def show_legs(self):
         self._show("_legs")
     def equip_legs(self, item):
         self._equip("_legs", item)
     def remove_legs(self):
         self._remove("_legs")
-        
-    def get_foot(self):
-        return self._get("_foot")
+
     def show_foot(self):
         self._show("_foot")
     def equip_foot(self, item):
         self._equip("_foot", item)
     def remove_foot(self):
         self._remove("_foot")
-        
-    def get_leftHand(self):
-        return self._get("_leftHand")
+
     def show_leftHand(self):
         self._show("_leftHand")
     def equip_leftHand(self, item):
         self._equip("_leftHand", item)
     def remove_leftHand(self):
         self._remove("_leftHand")
-        
-    def get_rightHand(self):
-        return self._get("_rightHand")
+
     def show_rightHand(self):
         self._show("_rightHand")
     def equip_rightHand(self, item):
@@ -116,9 +94,6 @@ class Stats:
     _constitution = attr.ib(default=0)
     _dexterity = attr.ib(default=0)
     _intelligence = attr.ib(default=0)
-        
-    def get_strength(self):
-        return self._strength
 
 
 @attr.s
@@ -126,19 +101,19 @@ class Item(Stuff):
     _name = attr.ib()
     _slot = attr.ib()
     _requirements = attr.ib()
-    __stats = attr.ib()
+    _stats = attr.ib()
 
     def get_stats(self):
-        return self.__stats
+        return self._stats
         
     def display(self):
         print("------------------------------")
         print(f"*** {self._name} ***")
-        print(f"    ({self._slot.get_name()})")
-        print(f"Force        : +{self.get_stats._strength} [req.{self._requirements._strength}]")
-        print(f"Constitution : +{self.get_stats._constitution} [req.{self._requirements._constitution}]")
-        print(f"Dexterité    : +{self.get_stats._dexterity} [req.{self._requirements._dexterity}]")
-        print(f"Intelligence : +{self.get_stats._intelligence} [req.{self._requirements._intelligence}]")
+        print(f"    ({self._slot._name})")
+        print(f"Force        : +{self._stats._strength} [req.{self._requirements._strength}]")
+        print(f"Constitution : +{self._stats._constitution} [req.{self._requirements._constitution}]")
+        print(f"Dexterité    : +{self._stats._dexterity} [req.{self._requirements._dexterity}]")
+        print(f"Intelligence : +{self._stats._intelligence} [req.{self._requirements._intelligence}]")
         print("------------------------------")
         
 
@@ -147,7 +122,7 @@ class Unequiped(Stuff):
     _slot = attr.ib()
     _name = attr.ib(default="Vide")
     _requirements = attr.ib(default=Stats(0, 0, 0, 0))
-    __stats = attr.ib(default=Stats(0, 0, 0, 0))
+    _stats = attr.ib(default=Stats(0, 0, 0, 0))
 
     def display(self):
         print("------------------------------")
@@ -155,7 +130,7 @@ class Unequiped(Stuff):
         print("------------------------------")
         
     def get_stats(self):
-        return self.__stats
+        return self._stats
 
 
 @attr.s
@@ -175,7 +150,7 @@ class Slot:
 class Player(Character, Stuff):
     _name = attr.ib()
     _level = attr.ib(default=1)
-    __stats = attr.ib(default=Stats(0, 0, 0, 0))
+    _stats = attr.ib(default=Stats(0, 0, 0, 0))
     _pvmax = attr.ib(default=100)
     _pv = attr.ib(default=100)
     _inventory = attr.ib(default=[])
@@ -187,35 +162,32 @@ class Player(Character, Stuff):
     _rightHand = attr.ib(Unequiped(slot = "_rightHand"))
         
     def _get_strength(self):
-        strength = self.get_stats()._strength
-        strength += self._head.get_stats()._strength
+        strength = self._stats._strength
+        strength += self._head._stats._strength
         return strength
     
     def _get_constitution(self):
-        constitution = self.get_stats()._constitution
-        constitution += self._head.get_stats()._constitution
+        constitution = self._stats._constitution
+        constitution += self._head._stats._constitution
         return constitution
     
     def _get_dexterity(self):
-        dexterity = self.get_stats()._dexterity
-        dexterity += self._head.get_stats()._dexterity
+        dexterity = self._stats._dexterity
+        dexterity += self._head._stats._dexterity
         return dexterity
     
     def _get_intelligence(self):
-        intelligence = self.get_stats()._intelligence
-        intelligence += self._head.get_stats()._intelligence
+        intelligence = self._stats._intelligence
+        intelligence += self._head._stats._intelligence
         return intelligence
-    
-    def get_stats(self):
-        return self.__stats
         
     def display_stats(self):
         print("***************************")
-        print("--- Point de vie [", self.get_pv(), "/", self.get_pvmax(), "]")
-        print("Strength :          ", self._get_strength())
-        print("Constitution :      ", self._get_constitution())
-        print("Dexterity :         ", self._get_dexterity())
-        print("Intelligence :      ", self._get_intelligence())
+        print("--- Point de vie [", self._pv, "/", self._pvmax, "]")
+        print("Strength :          ", self._stats._strength)
+        print("Constitution :      ", self._stats._constitution)
+        print("Dexterity :         ", self._stats._dexterity)
+        print("Intelligence :      ", self._stats._intelligence)
         print("***************************")
 
 
@@ -228,21 +200,21 @@ class Fight:
         self._attack()
     
     def _attack(self):
-        self.monster.alterate_pv(-self.player.get_stats().get_strength())
-        if self.monster.get_pv() > 0:
-            print(f"{self.player.get_name()} enlève {self.player.get_stats().get_strength()}PV à {self.monster.get_name()}")
+        self.monster.alterate_pv(-self.player._stats._strength)
+        if self.monster._pv > 0:
+            print(f"{self.player._name} enlève {self.player._stats._strength}PV à {self.monster._name}")
             self._defend()
         else:
-            print(f"{self.player.get_name()} enlève {self.player.get_stats().get_strength()}PV à {self.monster.get_name()} et le tue")
+            print(f"{self.player._name} enlève {self.player._stats._strength}PV à {self.monster._name} et le tue")
             print(f"Player win")
         
     def _defend(self):
-        self.player.alterate_pv(-self.monster.get_stats().get_strength())
-        if self.player.get_pv() > 0:
-            print(f"{self.monster.get_name()} enlève {self.monster.get_stats().get_strength()}PV à {self.player.get_name()}")
+        self.player.alterate_pv(-self.monster._stats._strength)
+        if self.player._pv > 0:
+            print(f"{self.monster._name} enlève {self.monster._stats._strength}PV à {self.player._name}")
             self._attack()
         else:
-            print(f"{self.monster.get_name()} enlève {self.monster.get_stats().get_strength()}PV à {self.player.get_name()} et le tue")
+            print(f"{self.monster._name} enlève {self.monster._stats._strength}PV à {self.player._name} et le tue")
             print(f"Monster win")
 
     def pick_loots(self):
@@ -254,7 +226,7 @@ class Fight:
         return Item("Heaume du débutant", Slot("_head"), Stats(12, 0, 10, 6), Stats(3, 0, 7, 0))
     
     def end_fight(self):
-        if self.player.get_stats()._strength >= self.monster.get_stats().get_strength():
+        if self.player._stats._strength >= self.monster._stats._strength:
             print(f"{self.player._name} win")
         else:
             print(f"{self.monster._name} win")
@@ -264,11 +236,11 @@ class Fight:
 class Monster(Character):
     _name = attr.ib()
     _level = attr.ib()
-    __stats = attr.ib()
+    _stats = attr.ib()
     _pv = attr.ib()
         
     def get_stats(self):
-        return self.__stats
+        return self._stats
     
 
 
