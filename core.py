@@ -1,4 +1,5 @@
 import random
+import attr
 
 class Character:
     def get_name(self):
@@ -109,25 +110,24 @@ class Stuff:
         self._remove("_rightHand")
 
 
+@attr.s
 class Stats:
-    def __init__(self, strength = 0, constitution = 0, dexterity = 0, intelligence = 0):
-        self._strength = strength
-        self._constitution = constitution
-        self._dexterity = dexterity
-        self._intelligence = intelligence
+    _strength = attr.ib(default=0)
+    _constitution = attr.ib(default=0)
+    _dexterity = attr.ib(default=0)
+    _intelligence = attr.ib(default=0)
         
     def get_strength(self):
         return self._strength
 
 
+@attr.s
 class Item(Stuff):
-    def __init__(self, name, slot, requirements = Stats(), stats = Stats()):
-        self._name = name
-        if type(slot) == Slot:
-            self._slot = slot
-        self._requirements = requirements
-        self.__stats = stats
-        
+    _name = attr.ib()
+    _slot = attr.ib()
+    _requirements = attr.ib()
+    __stats = attr.ib()
+
     def get_stats(self):
         return self.__stats
         
@@ -142,12 +142,12 @@ class Item(Stuff):
         print("------------------------------")
         
 
+@attr.s
 class Unequiped(Stuff):
-    def __init__(self, slot):
-        self._name = "Vide"
-        self._slot = slot
-        self._requirements = Stats(0,0,0,0)
-        self.__stats = Stats(0,0,0,0)
+    _slot = attr.ib()
+    _name = attr.ib(default="Vide")
+    _requirements = attr.ib(default=Stats(0, 0, 0, 0))
+    __stats = attr.ib(default=Stats(0, 0, 0, 0))
 
     def display(self):
         print("------------------------------")
@@ -158,38 +158,33 @@ class Unequiped(Stuff):
         return self.__stats
 
 
+@attr.s
 class Slot:
-    def __init__(self, name):
-        if name in ["_head", "_chest", "_legs", "_foot", "_leftHand", "_rightHand"]:
-            self._name = name
-        else:
-            raise NameError('Equipement invalide')
+    _name = attr.ib(validator=attr.validators.in_(["_head",
+                                                   "_chest",
+                                                   "_legs",
+                                                   "_foot",
+                                                   "_leftHand",
+                                                   "_rightHand"]))
         
     def get_name(self):
         return self._name
 
 
+@attr.s
 class Player(Character, Stuff):
-    def __init__(self, name, level, stats, pvmax, inventory = [],
-                 head = Unequiped(slot = "_head"),
-                 chest = Unequiped(slot = "_chest"),
-                 legs = Unequiped(slot = "_legs"),
-                 foot = Unequiped(slot = "_foot"),
-                 leftHand = Unequiped(slot = "_leftHand"),
-                 rightHand = Unequiped(slot = "_rightHand"),
-                ):
-        self._name = name
-        self._level = level
-        self.__stats = stats
-        self._pvmax = pvmax
-        self._pv = pvmax
-        self._inventory = inventory
-        self._head = head
-        self._chest = chest
-        self._legs = legs
-        self._foot = foot
-        self._leftHand = leftHand
-        self._rightHand = rightHand
+    _name = attr.ib()
+    _level = attr.ib(default=1)
+    __stats = attr.ib(default=Stats(0, 0, 0, 0))
+    _pvmax = attr.ib(default=100)
+    _pv = attr.ib(default=100)
+    _inventory = attr.ib(default=[])
+    _head = attr.ib(default=Unequiped(slot = "_head"))
+    _chest = attr.ib(Unequiped(slot = "_chest"))
+    _legs = attr.ib(Unequiped(slot = "_legs"))
+    _foot = attr.ib(Unequiped(slot = "_foot"))
+    _leftHand = attr.ib(Unequiped(slot = "_leftHand"))
+    _rightHand = attr.ib(Unequiped(slot = "_rightHand"))
         
     def _get_strength(self):
         strength = self.get_stats()._strength
@@ -223,11 +218,13 @@ class Player(Character, Stuff):
         print("Intelligence :      ", self._get_intelligence())
         print("***************************")
 
-    
+
+@attr.s(repr=False)
 class Fight:
-    def __init__(self, player, monster):
-        self.player = player
-        self.monster = monster
+    player = attr.ib()
+    monster = attr.ib()
+
+    def __attrs_post_init__(self):
         self._attack()
     
     def _attack(self):
@@ -262,43 +259,42 @@ class Fight:
         else:
             print(f"{self.monster._name} win")
     
+
+@attr.s
 class Monster(Character):
-    def __init__(self, name, level, stats, pv):
-        self._name = name
-        self._level = level
-        self.__stats = stats
-        self._pv = pv
+    _name = attr.ib()
+    _level = attr.ib()
+    __stats = attr.ib()
+    _pv = attr.ib()
         
     def get_stats(self):
         return self.__stats
-   
- 
-if __name__ == '__main__':
+    
 
-  beginnerHead = Item("Heaume du débutant", Slot("_head"), Stats(12, 0, 10, 6), Stats(3, 0, 7, 0))
-  beginnerChest = Item("Plastron du débutant", Slot("_chest"), Stats(12, 0, 10, 6), Stats(5, 0, 12, 0))
-  beginnerLegs = Item("Jambières du débutant", Slot("_legs"), Stats(12, 0, 10, 6), Stats(4, 0, 7, 0))
-  beginnerFoot = Item("Sandales du débutant", Slot("_foot"), Stats(12, 0, 10, 6), Stats(3, 0, 5, 0))
-  beginnerSword = Item("Epée du débutant", Slot("_rightHand"), Stats(12, 0, 10, 6), Stats(8, 0, 5, 0))
-  beginnerShield = Item("Bouclier du débutant", Slot("_leftHand"), Stats(12, 0, 10, 6), Stats(0, 0, 10, 0))
 
-  jacky = Player("Jacky le guerrier", 1, Stats(10,12,11,13), 40)
+beginnerHead = Item("Heaume du débutant", Slot("_head"), Stats(12, 0, 10, 6), Stats(3, 0, 7, 0))
+beginnerChest = Item("Plastron du débutant", Slot("_chest"), Stats(12, 0, 10, 6), Stats(5, 0, 12, 0))
+beginnerLegs = Item("Jambières du débutant", Slot("_legs"), Stats(12, 0, 10, 6), Stats(4, 0, 7, 0))
+beginnerFoot = Item("Sandales du débutant", Slot("_foot"), Stats(12, 0, 10, 6), Stats(3, 0, 5, 0))
+beginnerSword = Item("Epée du débutant", Slot("_rightHand"), Stats(12, 0, 10, 6), Stats(8, 0, 5, 0))
+beginnerShield = Item("Bouclier du débutant", Slot("_leftHand"), Stats(12, 0, 10, 6), Stats(0, 0, 10, 0))
 
-  jacky.equip_head(beginnerHead)
-  jacky.equip_chest(beginnerChest)
-  jacky.equip_legs(beginnerLegs)
-  jacky.equip_foot(beginnerFoot)
-  jacky.equip_rightHand(beginnerSword)
-  jacky.equip_leftHand(beginnerShield)
+jacky = Player("Jacky le guerrier", 1, Stats(10,12,11,13), 40)
 
-  gobelin1 = Monster("Toto le gobelin", 2, Stats(6,4,5,0), 36)
-  gobelin2 = Monster("Gérard le grand gobelin", 2, Stats(6,4,5,0), 36)
-  ogre1 = Monster("Pascal l'ogre puant'", 2, Stats(9,4,5,0), 50)
+jacky.equip_head(beginnerHead)
+jacky.equip_chest(beginnerChest)
+jacky.equip_legs(beginnerLegs)
+jacky.equip_foot(beginnerFoot)
+jacky.equip_rightHand(beginnerSword)
+jacky.equip_leftHand(beginnerShield)
 
-  Fight(jacky, gobelin1)
-  Fight(jacky, gobelin2)
-  jacky.display_stats()
-  jacky.drink_potion()
-  jacky.display_stats()
-  Fight(jacky, ogre1)
+gobelin1 = Monster("Toto le gobelin", 2, Stats(6,4,5,0), 36)
+gobelin2 = Monster("Gérard le grand gobelin", 2, Stats(6,4,5,0), 36)
+ogre1 = Monster("Pascal l'ogre puant'", 2, Stats(9,4,5,0), 50)
 
+Fight(jacky, gobelin1)
+Fight(jacky, gobelin2)
+jacky.display_stats()
+jacky.drink_potion()
+jacky.display_stats()
+Fight(jacky, ogre1)
