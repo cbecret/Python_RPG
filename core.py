@@ -105,7 +105,6 @@ class Item(Stuff):
     def get_stats(self):
         return self.stats
 
-    @staticmethod
     def display(self):
         print("------------------------------")
         print(f"*** {self.name} ***")
@@ -125,7 +124,7 @@ class Unequiped(Stuff):
     stats = attr.ib(default=Stats(0, 0, 0, 0))
 
     @staticmethod
-    def display():
+    def display(self):
         print("------------------------------")
         print(f"*** Vide ***")
         print("------------------------------")
@@ -243,7 +242,7 @@ class Fight:
             self._generate_loot()
 
     @staticmethod
-    def _generate_loot():
+    def _generate_loot(self):
         return Item("Heaume du débutant", Slot("head"), Stats(12, 0, 10, 6), Stats(3, 0, 7, 0))
 
     def end_fight(self):
@@ -293,3 +292,5 @@ jacky.display_stats()
 jacky.drink_potion()
 jacky.display_stats()
 Fight(jacky, ogre1)
+
+jacky.show_stuff()
