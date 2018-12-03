@@ -7,5 +7,5 @@
 * Prise en compte des stats des items
 * Inventaire fonctionnel
 * Générateur de loot combat
-* Interactivité combar
+* Interactivité combat
 * Création histoire
